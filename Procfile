@@ -1,0 +1,1 @@
+web: sage-intacct-mcp

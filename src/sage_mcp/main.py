@@ -1,5 +1,7 @@
 """Sage Intacct MCP server entry point."""
 
+import os
+
 from mcp.server.fastmcp import FastMCP
 
 from sage_mcp.tools.ap import GetAPAgingInput, GetAPBillsInput, get_ap_aging, get_ap_bills
@@ -127,7 +129,11 @@ async def _run_report(params: RunReportInput) -> str:
 
 
 def main() -> None:
-    mcp.run()
+    port = int(os.environ.get("PORT", 0))
+    if port:
+        mcp.run(transport="streamable-http", host="0.0.0.0", port=port)
+    else:
+        mcp.run()
 
 
 if __name__ == "__main__":

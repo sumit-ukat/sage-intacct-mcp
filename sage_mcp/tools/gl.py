@@ -1,6 +1,7 @@
 """General Ledger tools for Sage Intacct MCP."""
 
 import json
+import xml.sax.saxutils as saxutils
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -62,7 +63,7 @@ async def get_gl_entries(params: GetGLEntriesInput) -> str:
             "<fields>RECORDNO,BATCH_DATE,BATCHNO,ACCOUNTNO,ACCOUNTTITLE,"
             "AMOUNT,DEBIT,CREDIT,CURRENCY,DESCRIPTION,ENTRY_DATE,"
             "DEPT_NAME,PROJECT_NAME,WHENCREATED,WHENMODIFIED</fields>"
-            f"<query>{query}</query>"
+            f"<query>{saxutils.escape(query)}</query>"
             f"<pagesize>{params.limit}</pagesize>"
             f"<offset>{params.offset}</offset>"
             "</readByQuery>"

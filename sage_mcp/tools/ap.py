@@ -1,6 +1,7 @@
 """Accounts Payable tools for Sage Intacct MCP."""
 
 import json
+import xml.sax.saxutils as saxutils
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -71,7 +72,7 @@ async def get_ap_bills(params: GetAPBillsInput) -> str:
             "<fields>RECORDNO,VENDORID,VENDORNAME,WHENCREATED,WHENDUE,DUEDATE,"
             "TOTALENTERED,TOTALDUE,TOTALPAID,STATE,DESCRIPTION,CURRENCY,"
             "TERMNAME,PAYMENTTERM,DOCNUMBER</fields>"
-            f"<query>{query}</query>"
+            f"<query>{saxutils.escape(query)}</query>"
             f"<pagesize>{params.limit}</pagesize>"
             f"<offset>{params.offset}</offset>"
             "</readByQuery>"

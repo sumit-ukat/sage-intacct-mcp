@@ -130,7 +130,7 @@ async def _run_report(params: RunReportInput) -> str:
 
 def main() -> None:
     port = int(os.environ.get("PORT", 8000))
-    mcp.run(transport="streamable-http", host="0.0.0.0", port=port)
+    mcp.run(transport="streamable_http", host="0.0.0.0", port=port)
 
 
 if __name__ == "__main__":

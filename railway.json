@@ -4,7 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "sage-intacct-mcp",
+    "startCommand": "python -m sage_mcp.main",
     "restartPolicyType": "ON_FAILURE"
   }
 }

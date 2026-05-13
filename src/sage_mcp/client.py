@@ -3,6 +3,7 @@
 import os
 import uuid
 import xml.etree.ElementTree as ET
+import xml.sax.saxutils as saxutils
 from typing import Any, Dict, Optional
 
 import httpx
@@ -42,12 +43,13 @@ class SageIntacctClient:
 
     def _build_request(self, function_xml: str) -> str:
         control_id = str(uuid.uuid4())
+        e = saxutils.escape  # XML-escape special chars in credentials
         return (
             '<?xml version="1.0" encoding="UTF-8"?>'
             "<request>"
             "<control>"
-            f"<senderid>{self.sender_id}</senderid>"
-            f"<password>{self.sender_password}</password>"
+            f"<senderid>{e(self.sender_id)}</senderid>"
+            f"<password>{e(self.sender_password)}</password>"
             f"<controlid>{control_id}</controlid>"
             "<uniqueid>false</uniqueid>"
             "<dtdversion>3.0</dtdversion>"
@@ -56,9 +58,9 @@ class SageIntacctClient:
             "<operation>"
             "<authentication>"
             "<login>"
-            f"<userid>{self.user_id}</userid>"
-            f"<companyid>{self.company_id}</companyid>"
-            f"<password>{self.user_password}</password>"
+            f"<userid>{e(self.user_id)}</userid>"
+            f"<companyid>{e(self.company_id)}</companyid>"
+            f"<password>{e(self.user_password)}</password>"
             "</login>"
             "</authentication>"
             "<content>"

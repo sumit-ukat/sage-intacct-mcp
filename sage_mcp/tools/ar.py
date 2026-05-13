@@ -70,9 +70,9 @@ async def get_ar_invoices(params: GetARInvoicesInput) -> str:
         function_xml = (
             "<readByQuery>"
             "<object>ARINVOICE</object>"
-            "<fields>RECORDNO,CUSTOMERID,CUSTOMERNAME,WHENCREATED,WHENDUE,DUEDATE,"
+            "<fields>RECORDNO,CUSTOMERID,CUSTOMERNAME,WHENCREATED,WHENDUE,"
             "TOTALENTERED,TOTALDUE,TOTALPAID,STATE,DESCRIPTION,CURRENCY,"
-            "TERMNAME,DOCNUMBER,PONUMBER</fields>"
+            "TERMNAME,DOCNUMBER</fields>"
             f"<query>{saxutils.escape(query)}</query>"
             f"<pagesize>{params.limit}</pagesize>"
             "</readByQuery>"

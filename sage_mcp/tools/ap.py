@@ -68,9 +68,9 @@ async def get_ap_bills(params: GetAPBillsInput) -> str:
         function_xml = (
             "<readByQuery>"
             "<object>APBILL</object>"
-            "<fields>RECORDNO,VENDORID,VENDORNAME,WHENCREATED,WHENDUE,DUEDATE,"
+            "<fields>RECORDNO,VENDORID,VENDORNAME,WHENCREATED,WHENDUE,"
             "TOTALENTERED,TOTALDUE,TOTALPAID,STATE,DESCRIPTION,CURRENCY,"
-            "TERMNAME,PAYMENTTERM,DOCNUMBER</fields>"
+            "TERMNAME,DOCNUMBER</fields>"
             f"<query>{saxutils.escape(query)}</query>"
             f"<pagesize>{params.limit}</pagesize>"
             "</readByQuery>"

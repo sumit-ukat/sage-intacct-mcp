@@ -17,7 +17,8 @@ from sage_mcp.tools.financials import (
 from sage_mcp.tools.gl import GetGLEntriesInput, GetTrialBalanceInput, get_gl_entries, get_trial_balance
 from sage_mcp.tools.reports import ListReportsInput, RunReportInput, list_reports, run_report
 
-mcp = FastMCP("sage_intacct_mcp")
+PORT = int(os.environ.get("PORT", 8000))
+mcp = FastMCP("sage_intacct_mcp", host="0.0.0.0", port=PORT)
 
 # ── General Ledger ────────────────────────────────────────────────────────────
 
@@ -129,8 +130,7 @@ async def _run_report(params: RunReportInput) -> str:
 
 
 def main() -> None:
-    port = int(os.environ.get("PORT", 8000))
-    mcp.run(transport="streamable_http", host="0.0.0.0", port=port)
+    mcp.run(transport="streamable-http")
 
 
 if __name__ == "__main__":

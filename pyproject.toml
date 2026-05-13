@@ -17,4 +17,4 @@ dependencies = [
 sage-intacct-mcp = "sage_mcp.main:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/sage_mcp"]
+packages = ["sage_mcp"]

@@ -1,8 +1,5 @@
 [variables]
 PYTHONPATH = "/app"
 
-[phases.install]
-cmds = ["pip install -r requirements.txt"]
-
 [start]
 cmd = "python -m sage_mcp.main"

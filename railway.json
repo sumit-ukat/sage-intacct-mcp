@@ -5,7 +5,6 @@
   },
   "deploy": {
     "startCommand": "sage-intacct-mcp",
-    "healthcheckPath": "/health",
     "restartPolicyType": "ON_FAILURE"
   }
 }

@@ -1,1 +1,1 @@
-web: sage-intacct-mcp
+web: python -m sage_mcp.main

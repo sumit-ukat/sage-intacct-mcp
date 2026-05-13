@@ -91,11 +91,14 @@ class SageIntacctClient:
 
         control = root.find("control")
         if control is not None and control.findtext("status") == "failure":
+            # Sage Intacct puts control errors in <errormessage> at the root level,
+            # not inside <control> itself.
+            err_container = root.find("errormessage") or control
             msgs = [
-                f"{e.findtext('errorno')}: {e.findtext('description')}"
-                for e in control.findall(".//error")
+                f"{e.findtext('errorno')}: {e.findtext('description2') or e.findtext('description')}"
+                for e in err_container.findall(".//error")
             ]
-            raise IntacctError(f"Control error: {'; '.join(msgs)}")
+            raise IntacctError(f"Control error: {'; '.join(msgs) or 'unknown (check sender credentials)'}")
 
         operation = root.find("operation")
         if operation is None:

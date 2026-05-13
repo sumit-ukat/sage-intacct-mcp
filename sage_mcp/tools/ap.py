@@ -20,7 +20,6 @@ class GetAPBillsInput(BaseModel):
     start_date: Optional[str] = Field(default=None, description="Bill date from MM/DD/YYYY")
     end_date: Optional[str] = Field(default=None, description="Bill date to MM/DD/YYYY")
     limit: int = Field(default=100, ge=1, le=1000, description="Max records (1–1000)")
-    offset: int = Field(default=0, ge=0, description="Pagination offset")
 
 
 class GetAPAgingInput(BaseModel):
@@ -74,7 +73,6 @@ async def get_ap_bills(params: GetAPBillsInput) -> str:
             "TERMNAME,PAYMENTTERM,DOCNUMBER</fields>"
             f"<query>{saxutils.escape(query)}</query>"
             f"<pagesize>{params.limit}</pagesize>"
-            f"<offset>{params.offset}</offset>"
             "</readByQuery>"
         )
 
@@ -83,7 +81,6 @@ async def get_ap_bills(params: GetAPBillsInput) -> str:
             {
                 "totalcount": result["totalcount"],
                 "numremaining": result["numremaining"],
-                "offset": params.offset,
                 "bills": result["data"],
             },
             indent=2,

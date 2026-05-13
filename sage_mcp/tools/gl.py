@@ -16,7 +16,6 @@ class GetGLEntriesInput(BaseModel):
     end_date: str = Field(..., description="End date in MM/DD/YYYY format (e.g., '12/31/2024')")
     account: Optional[str] = Field(default=None, description="Filter by GL account number (e.g., '1000')")
     limit: int = Field(default=100, ge=1, le=1000, description="Max records to return (1–1000)")
-    offset: int = Field(default=0, ge=0, description="Pagination offset")
 
 
 class GetTrialBalanceInput(BaseModel):
@@ -65,7 +64,6 @@ async def get_gl_entries(params: GetGLEntriesInput) -> str:
             "DEPT_NAME,PROJECT_NAME,WHENCREATED,WHENMODIFIED</fields>"
             f"<query>{saxutils.escape(query)}</query>"
             f"<pagesize>{params.limit}</pagesize>"
-            f"<offset>{params.offset}</offset>"
             "</readByQuery>"
         )
 
@@ -74,7 +72,6 @@ async def get_gl_entries(params: GetGLEntriesInput) -> str:
             {
                 "totalcount": result["totalcount"],
                 "numremaining": result["numremaining"],
-                "offset": params.offset,
                 "entries": result["data"],
             },
             indent=2,

@@ -20,7 +20,6 @@ class GetARInvoicesInput(BaseModel):
     start_date: Optional[str] = Field(default=None, description="Invoice date from MM/DD/YYYY")
     end_date: Optional[str] = Field(default=None, description="Invoice date to MM/DD/YYYY")
     limit: int = Field(default=100, ge=1, le=1000, description="Max records (1–1000)")
-    offset: int = Field(default=0, ge=0, description="Pagination offset")
 
 
 class GetARAgingInput(BaseModel):
@@ -76,7 +75,6 @@ async def get_ar_invoices(params: GetARInvoicesInput) -> str:
             "TERMNAME,DOCNUMBER,PONUMBER</fields>"
             f"<query>{saxutils.escape(query)}</query>"
             f"<pagesize>{params.limit}</pagesize>"
-            f"<offset>{params.offset}</offset>"
             "</readByQuery>"
         )
 
@@ -85,7 +83,6 @@ async def get_ar_invoices(params: GetARInvoicesInput) -> str:
             {
                 "totalcount": result["totalcount"],
                 "numremaining": result["numremaining"],
-                "offset": params.offset,
                 "invoices": result["data"],
             },
             indent=2,

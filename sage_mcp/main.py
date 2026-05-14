@@ -14,7 +14,14 @@ from sage_mcp.tools.financials import (
     get_cash_flow,
     get_profit_and_loss,
 )
-from sage_mcp.tools.gl import GetGLEntriesInput, GetTrialBalanceInput, get_gl_entries, get_trial_balance
+from sage_mcp.tools.gl import (
+    GetAccountBalanceInput,
+    GetGLEntriesInput,
+    GetTrialBalanceInput,
+    get_account_balance,
+    get_gl_entries,
+    get_trial_balance,
+)
 from sage_mcp.tools.reports import ListReportsInput, RunReportInput, list_reports, run_report
 
 PORT = int(os.environ.get("PORT", 8000))
@@ -38,6 +45,20 @@ async def _get_gl_entries(params: GetGLEntriesInput) -> str:
 async def _get_trial_balance(params: GetTrialBalanceInput) -> str:
     """Run the Trial Balance saved report from Sage Intacct."""
     return await get_trial_balance(params)
+
+
+@mcp.tool(
+    name="intacct_get_account_balance",
+    annotations={"title": "Get Account Balance As-At Date", "readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True},
+)
+async def _get_account_balance(params: GetAccountBalanceInput) -> str:
+    """Trial-balance figure for one or more accounts as at a given date.
+
+    Sums GL entries (Dr − Cr) from inception through the as-of date, with inactive
+    locations/entities filtered out by default. Pass comma-separated accounts for
+    multi-account summaries (e.g. all cash & cash equivalents).
+    """
+    return await get_account_balance(params)
 
 
 # ── Accounts Payable ──────────────────────────────────────────────────────────

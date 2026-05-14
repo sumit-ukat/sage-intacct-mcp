@@ -146,6 +146,45 @@ class SageIntacctClient:
     async def read_more(self, result_id: str) -> Dict[str, Any]:
         return await self.execute(f"<readMore><resultId>{result_id}</resultId></readMore>")
 
+    async def get_active_locations(self) -> set:
+        """Return cached set of active LOCATIONIDs (entities + locations).
+
+        Used to automatically exclude inactive locations/entities from GL/AP/AR
+        result sets so balances match the Balance Sheet 'active entities' view.
+        """
+        cached = getattr(self, "_active_locations", None)
+        if cached is not None:
+            return cached
+        result = await self.execute(
+            "<readByQuery>"
+            "<object>LOCATION</object>"
+            "<fields>LOCATIONID,STATUS</fields>"
+            "<query></query>"
+            "<pagesize>1000</pagesize>"
+            "</readByQuery>"
+        )
+        active = {
+            r.get("LOCATIONID")
+            for r in result.get("data", [])
+            if isinstance(r, dict) and r.get("STATUS") == "active" and r.get("LOCATIONID")
+        }
+        self._active_locations = active
+        return active
+
+    async def fetch_all_pages(self, function_xml: str, page_size: int = 1000) -> list:
+        """Fetch every page of a readByQuery, returning concatenated record list."""
+        all_records: list = []
+        result = await self.execute(function_xml)
+        all_records.extend(result.get("data", []))
+        while True:
+            num_remaining = int(result.get("numremaining", 0) or 0)
+            result_id = result.get("resultId")
+            if num_remaining <= 0 or not result_id:
+                break
+            result = await self.read_more(result_id)
+            all_records.extend(result.get("data", []))
+        return all_records
+
 
 def handle_error(exc: Exception) -> str:
     if isinstance(exc, IntacctError):

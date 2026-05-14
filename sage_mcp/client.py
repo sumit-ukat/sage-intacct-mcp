@@ -147,29 +147,52 @@ class SageIntacctClient:
         return await self.execute(f"<readMore><resultId>{result_id}</resultId></readMore>")
 
     async def get_active_locations(self) -> set:
-        """Return cached set of active LOCATIONIDs (entities + locations).
+        """Return cached set of active LOCATIONIDs (string codes like 'L-BL', 'E-200').
 
-        Used to automatically exclude inactive locations/entities from GL/AP/AR
-        result sets so balances match the Balance Sheet 'active entities' view.
+        Used by GLENTRY filtering (which stores LOCATION as a string code).
         """
         cached = getattr(self, "_active_locations", None)
         if cached is not None:
             return cached
+        await self._load_location_cache()
+        return self._active_locations
+
+    async def get_active_location_keys(self) -> set:
+        """Return cached set of active LOCATION RECORDNOs (as strings).
+
+        Used by APBILL / ARINVOICE filtering (which store LOCATIONKEY = LOCATION.RECORDNO).
+        """
+        cached = getattr(self, "_active_location_keys", None)
+        if cached is not None:
+            return cached
+        await self._load_location_cache()
+        return self._active_location_keys
+
+    async def _load_location_cache(self) -> None:
+        """Populate both active-LOCATIONID and active-RECORDNO caches in one fetch."""
         result = await self.execute(
             "<readByQuery>"
             "<object>LOCATION</object>"
-            "<fields>LOCATIONID,STATUS</fields>"
+            "<fields>RECORDNO,LOCATIONID,STATUS</fields>"
             "<query></query>"
             "<pagesize>1000</pagesize>"
             "</readByQuery>"
         )
-        active = {
-            r.get("LOCATIONID")
-            for r in result.get("data", [])
-            if isinstance(r, dict) and r.get("STATUS") == "active" and r.get("LOCATIONID")
-        }
-        self._active_locations = active
-        return active
+        active_ids: set = set()
+        active_keys: set = set()
+        for r in result.get("data", []):
+            if not isinstance(r, dict):
+                continue
+            if r.get("STATUS") != "active":
+                continue
+            lid = r.get("LOCATIONID")
+            recno = r.get("RECORDNO")
+            if lid:
+                active_ids.add(lid)
+            if recno:
+                active_keys.add(str(recno))
+        self._active_locations = active_ids
+        self._active_location_keys = active_keys
 
     async def fetch_all_pages(self, function_xml: str, page_size: int = 1000) -> list:
         """Fetch every page of a readByQuery, returning concatenated record list."""

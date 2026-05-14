@@ -20,6 +20,10 @@ class GetARInvoicesInput(BaseModel):
     start_date: Optional[str] = Field(default=None, description="Invoice date from MM/DD/YYYY")
     end_date: Optional[str] = Field(default=None, description="Invoice date to MM/DD/YYYY")
     limit: int = Field(default=100, ge=1, le=1000, description="Max records (1–1000)")
+    include_inactive_locations: bool = Field(
+        default=False,
+        description="Include invoices posted to inactive locations/entities. Default False.",
+    )
 
 
 class GetARAgingInput(BaseModel):
@@ -72,18 +76,34 @@ async def get_ar_invoices(params: GetARInvoicesInput) -> str:
             "<object>ARINVOICE</object>"
             "<fields>RECORDNO,CUSTOMERID,CUSTOMERNAME,WHENCREATED,WHENDUE,"
             "TOTALENTERED,TOTALDUE,TOTALPAID,STATE,DESCRIPTION,CURRENCY,"
-            "TERMNAME,DOCNUMBER</fields>"
+            "TERMNAME,DOCNUMBER,LOCATIONKEY</fields>"
             f"<query>{saxutils.escape(query)}</query>"
             f"<pagesize>{params.limit}</pagesize>"
             "</readByQuery>"
         )
 
-        result = await get_client().execute(function_xml)
+        client = get_client()
+        result = await client.execute(function_xml)
+        invoices = result["data"]
+
+        filtered_count = 0
+        if not params.include_inactive_locations:
+            active_keys = await client.get_active_location_keys()
+            kept = []
+            for inv in invoices:
+                key = inv.get("LOCATIONKEY") if isinstance(inv, dict) else None
+                if not key or str(key) in active_keys:
+                    kept.append(inv)
+                else:
+                    filtered_count += 1
+            invoices = kept
+
         return json.dumps(
             {
                 "totalcount": result["totalcount"],
                 "numremaining": result["numremaining"],
-                "invoices": result["data"],
+                "filtered_inactive_locations": filtered_count,
+                "invoices": invoices,
             },
             indent=2,
         )

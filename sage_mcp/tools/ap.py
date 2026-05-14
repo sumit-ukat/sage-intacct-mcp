@@ -20,6 +20,10 @@ class GetAPBillsInput(BaseModel):
     start_date: Optional[str] = Field(default=None, description="Bill date from MM/DD/YYYY")
     end_date: Optional[str] = Field(default=None, description="Bill date to MM/DD/YYYY")
     limit: int = Field(default=100, ge=1, le=1000, description="Max records (1–1000)")
+    include_inactive_locations: bool = Field(
+        default=False,
+        description="Include bills posted to inactive locations/entities. Default False.",
+    )
 
 
 class GetAPAgingInput(BaseModel):
@@ -70,18 +74,35 @@ async def get_ap_bills(params: GetAPBillsInput) -> str:
             "<object>APBILL</object>"
             "<fields>RECORDNO,VENDORID,VENDORNAME,WHENCREATED,WHENDUE,"
             "TOTALENTERED,TOTALDUE,TOTALPAID,STATE,DESCRIPTION,CURRENCY,"
-            "TERMNAME,DOCNUMBER</fields>"
+            "TERMNAME,DOCNUMBER,LOCATIONKEY</fields>"
             f"<query>{saxutils.escape(query)}</query>"
             f"<pagesize>{params.limit}</pagesize>"
             "</readByQuery>"
         )
 
-        result = await get_client().execute(function_xml)
+        client = get_client()
+        result = await client.execute(function_xml)
+        bills = result["data"]
+
+        filtered_count = 0
+        if not params.include_inactive_locations:
+            active_keys = await client.get_active_location_keys()
+            kept = []
+            for b in bills:
+                key = b.get("LOCATIONKEY") if isinstance(b, dict) else None
+                # Keep if no location specified (top-level) or location is active
+                if not key or str(key) in active_keys:
+                    kept.append(b)
+                else:
+                    filtered_count += 1
+            bills = kept
+
         return json.dumps(
             {
                 "totalcount": result["totalcount"],
                 "numremaining": result["numremaining"],
-                "bills": result["data"],
+                "filtered_inactive_locations": filtered_count,
+                "bills": bills,
             },
             indent=2,
         )
